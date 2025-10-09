@@ -58,16 +58,28 @@ jobs:
           ./gradlew assemble --no-scan || { echo "❌ Assemble failed"; exit 1; }
           echo "✅ Project built successfully"
 
+
       - name: Collect build artifacts
         run: |
           echo "📦 Collecting artifacts..."
+          rm -rf build/package
           mkdir -p build/package/{primary,sources,javadoc,others}
-          find . -type f -path "*/build/libs/*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" -exec cp {} build/package/primary/ \;
-          find . -type f -path "*/build/libs/*-sources.jar" -exec cp {} build/package/sources/ \;
-          find . -type f -path "*/build/libs/*-javadoc.jar" -exec cp {} build/package/javadoc/ \;
-          find . -type f -path "*/build/publications/*/*.pom" -exec cp {} build/package/others/ \;
-          echo "✅ Artifacts collected:"
+
+          # Primary jars (exclude sources/javadoc)
+          find . -type f -path "*/build/libs/*.jar" \
+            ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+            -exec cp {} build/package/primary/ \; || true
+
+          # Sources & Javadoc jars (if any)
+          find . -type f -path "*/build/libs/*-sources.jar" -exec cp {} build/package/sources/ \; || true
+          find . -type f -path "*/build/libs/*-javadoc.jar" -exec cp {} build/package/javadoc/ \; || true
+
+          # (Optional) POMs or other publish files
+          find . -type f -path "*/build/publications/*/*.pom" -exec cp {} build/package/others/ \; || true
+
+          echo "✅ Collected:"
           find build/package -type f -maxdepth 2 -print
+
 
       - uses: actions/upload-artifact@v4
         with:
@@ -76,3 +88,6 @@ jobs:
 
 
           
+
+
+
