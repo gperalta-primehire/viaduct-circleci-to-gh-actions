@@ -14,6 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify Gradle wrapper
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "❌ gradlew not found"
+            exit 1
+          fi
+          chmod +x ./gradlew
+          echo "✅ Gradle wrapper ready"
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
@@ -29,6 +38,41 @@ jobs:
             .gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
 
+      - name: Set gradlew permissions
+        if: false
+        run: chmod +x ./gradlew
 
-      - name: debug ls
-        run: ls
+      - name: Download dependencies
+        run: |
+          echo "📥 Downloading Gradle dependencies..."
+          ./gradlew dependencies --no-scan || {
+            echo "❌ Failed to download dependencies"
+            exit 1
+          }
+          echo "✅ Dependencies downloaded successfully"
+
+      - name: Build project (without tests)
+        run: |
+          echo "🔨 Building project..."
+          ./gradlew clean --no-scan || { echo "❌ Clean failed"; exit 1; }
+          ./gradlew assemble --no-scan || { echo "❌ Assemble failed"; exit 1; }
+          echo "✅ Project built successfully"
+
+      - name: Collect build artifacts
+        run: |
+          echo "📦 Collecting artifacts..."
+          mkdir -p build/package/{primary,sources,javadoc,others}
+          find . -type f -path "*/build/libs/*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" -exec cp {} build/package/primary/ \;
+          find . -type f -path "*/build/libs/*-sources.jar" -exec cp {} build/package/sources/ \;
+          find . -type f -path "*/build/libs/*-javadoc.jar" -exec cp {} build/package/javadoc/ \;
+          find . -type f -path "*/build/publications/*/*.pom" -exec cp {} build/package/others/ \;
+          echo "✅ Artifacts collected:"
+          find build/package -type f -maxdepth 2 -print
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-package
+          path: build/package/
+
+
+          
