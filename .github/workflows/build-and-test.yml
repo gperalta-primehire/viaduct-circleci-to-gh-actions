@@ -1,0 +1,18 @@
+name: Build and Test (Gradle)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      GRADLE_SCAN: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: debug ls
+        run: ls
