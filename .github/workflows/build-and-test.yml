@@ -237,7 +237,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: detekt-reports
-          path: build/reports/detekt
+          path: '**/build/reports/detekt/**/*'
 
   ktlint:
     runs-on: ubuntu-latest
