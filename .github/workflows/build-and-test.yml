@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+  pull_request:
+    branches-ignore:
+      - main
 
 jobs:
   build:
@@ -236,6 +239,133 @@ jobs:
           name: detekt-reports
           path: build/reports/detekt
 
+  ktlint:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      GRADLE_SCAN: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Gradle wrapper
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "❌ gradlew not found"
+            exit 1
+          fi
+          chmod +x ./gradlew
+          echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Run Ktlint Code Formatting Check
+        run: |
+          echo "🧹 Running Ktlint code formatting check..."
+          ./gradlew ktlintCheck --no-daemon --max-workers=1 || {
+            echo "❌ Ktlint found code formatting violations"
+            exit 1
+          }
+          echo "✅ Ktlint formatting check passed"
+
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      GRADLE_SCAN: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Dokka documentation exists
+        run: |
+          echo "🔍 Verifying Dokka documentation..."
+          set -eo pipefail
+          if [ ! -f ".circleci/scripts/check_docs.sh" ]; then
+            echo "❌ check_docs.sh script not found"
+            exit 1
+          fi
+          chmod +x .circleci/scripts/check_docs.sh
+          sh .circleci/scripts/check_docs.sh || {
+            echo "❌ Documentation verification failed"
+            exit 1
+          }
+          echo "✅ Documentation verification completed"
+
+      - name: Deploy Dokka HTML to GitHub Pages
+        run: |
+          echo "🚀 Deploying documentation to GitHub Pages..."
+          set -eo pipefail
+          if [ ! -f ".circleci/scripts/deploy_docs.sh" ]; then
+            echo "❌ deploy_docs.sh script not found"
+            exit 1
+          fi
+          chmod +x .circleci/scripts/deploy_docs.sh
+          sh .circleci/scripts/deploy_docs.sh || {
+            echo "❌ Documentation deployment failed"
+            exit 1
+          }
+          echo "✅ Documentation deployed successfully"
+
+  coverage-verification:
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      GRADLE_SCAN: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Gradle wrapper
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "❌ gradlew not found"
+            exit 1
+          fi
+          chmod +x ./gradlew
+          echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Verify coverage thresholds
+        run: |
+          echo "🎯 Verifying coverage thresholds..."
+          ./gradlew testCodeCoverageVerification --no-scan --no-configuration-cache -x testCodeCoverageReport || {
+            echo "❌ Coverage thresholds not met"
+            echo "Please check the coverage report and add more tests"
+            exit 1
+          }
+          echo "✅ Coverage thresholds met successfully"
 
 
 
