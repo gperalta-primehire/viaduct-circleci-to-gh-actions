@@ -324,6 +324,11 @@ jobs:
           }
           echo "✅ Javadoc generated successfully"
 
+      - name: List potential Javadoc outputs
+        run: |
+          echo "🔍 Searching for generated Javadoc..."
+          find . -type d -name "javadoc" | head -20
+
       - name: Upload Javadoc reports
         uses: actions/upload-artifact@v4
         with:
