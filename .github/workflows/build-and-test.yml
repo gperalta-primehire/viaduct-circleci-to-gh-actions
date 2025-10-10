@@ -37,10 +37,8 @@ jobs:
             ~/.gradle/wrapper
             .gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
-
-      - name: Set gradlew permissions
-        if: false
-        run: chmod +x ./gradlew
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Download dependencies
         run: |
@@ -87,7 +85,30 @@ jobs:
           path: build/package/
 
 
-          
+      # TODO: Enable Dokka documentation generation when ready
+      # - name: Generate Dokka documentation
+      #   run: |
+      #     echo "📝 Generating Dokka documentation..."
+      #     ./gradlew dokkaHtmlMultiModule --no-scan --no-configuration-cache || {
+      #       echo "❌ Dokka documentation generation failed"
+      #       exit 1
+      #     }
+      #     echo "✅ Dokka documentation generated successfully"
+      #
+      # - name: Dump Dokka problem report
+      #   if: always()
+      #   run: |
+      #     if [ -f build/reports/problems/problems-report.html ]; then
+      #       echo "==== Dokka Problem Report ===="
+      #       cat build/reports/problems/problems-report.html | sed -e 's/<[^>]*>//g' | head -n 100
+      #     else
+      #       echo "No Dokka problem report found."
+      #     fi
+
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: kdoc-html
+      #     path: build/dokka
 
 
 
