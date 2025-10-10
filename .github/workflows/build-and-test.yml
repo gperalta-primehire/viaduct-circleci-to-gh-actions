@@ -28,13 +28,6 @@ jobs:
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
 
-      - name: Setup JDK
-        if: false
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -133,13 +126,6 @@ jobs:
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
 
-      - name: Setup JDK
-        if: false
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -211,13 +197,6 @@ jobs:
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
 
-      - name: Setup JDK
-        if: false
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -265,13 +244,6 @@ jobs:
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
 
-      - name: Setup JDK
-        if: false
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -302,13 +274,6 @@ jobs:
       GRADLE_SCAN: "false"
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup JDK
-        if: false
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
 
       - name: Verify Gradle wrapper
         run: |
@@ -364,13 +329,6 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
-
-      - name: Setup JDK
-        if: false
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
