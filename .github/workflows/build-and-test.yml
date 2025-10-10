@@ -11,8 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       GRADLE_SCAN: "false"
@@ -27,6 +25,12 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -108,8 +112,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -130,6 +132,12 @@ jobs:
         with:
           name: build
           path: build/
+          
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -184,8 +192,6 @@ jobs:
 
   detekt:
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -201,6 +207,12 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -231,8 +243,6 @@ jobs:
 
   ktlint:
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -248,6 +258,12 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -271,8 +287,6 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -288,6 +302,12 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -317,8 +337,6 @@ jobs:
 
   coverage-verification:
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     needs: test
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -334,6 +352,12 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -359,8 +383,6 @@ jobs:
   deploy-docs:
     if: false
     runs-on: ubuntu-latest
-    container:
-      image: cimg/openjdk:21.0
     needs: docs
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -372,6 +394,23 @@ jobs:
         with:
           name: javadoc
           path: build/docs/javadoc/
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Verify Dokka documentation exists
         run: |
