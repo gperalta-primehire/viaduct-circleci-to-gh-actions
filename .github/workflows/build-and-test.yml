@@ -110,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: cimg/openjdk:21.0
-    #needs: build
+    needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       GRADLE_SCAN: "false"
@@ -125,6 +125,11 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
