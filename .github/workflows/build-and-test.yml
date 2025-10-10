@@ -280,7 +280,7 @@ jobs:
           }
           echo "✅ Ktlint formatting check passed"
 
-  deploy-docs:
+  docs:
     runs-on: ubuntu-latest
     needs: build
     env:
@@ -289,40 +289,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      - name: Setup JDK
+        uses: actions/setup-java@v4
         with:
-          name: build
-          path: build/
+          distribution: 'temurin'
+          java-version: '21'
 
-      - name: Verify Dokka documentation exists
+      - name: Verify Gradle wrapper
         run: |
-          echo "🔍 Verifying Dokka documentation..."
-          set -eo pipefail
-          if [ ! -f ".circleci/scripts/check_docs.sh" ]; then
-            echo "❌ check_docs.sh script not found"
+          if [ ! -f "./gradlew" ]; then
+            echo "❌ gradlew not found"
             exit 1
           fi
-          chmod +x .circleci/scripts/check_docs.sh
-          sh .circleci/scripts/check_docs.sh || {
-            echo "❌ Documentation verification failed"
-            exit 1
-          }
-          echo "✅ Documentation verification completed"
+          chmod +x ./gradlew
+          echo "✅ Gradle wrapper ready"
 
-      - name: Deploy Dokka HTML to GitHub Pages
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Generate Javadoc
         run: |
-          echo "🚀 Deploying documentation to GitHub Pages..."
-          set -eo pipefail
-          if [ ! -f ".circleci/scripts/deploy_docs.sh" ]; then
-            echo "❌ deploy_docs.sh script not found"
-            exit 1
-          fi
-          chmod +x .circleci/scripts/deploy_docs.sh
-          sh .circleci/scripts/deploy_docs.sh || {
-            echo "❌ Documentation deployment failed"
+          echo "📝 Generating Javadoc documentation..."
+          ./gradlew javadoc --no-scan || {
+            echo "❌ Javadoc generation failed"
             exit 1
           }
-          echo "✅ Documentation deployed successfully"
+          echo "✅ Javadoc generated successfully"
+
+      - name: Upload Javadoc reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadoc
+          path: build/docs/javadoc
 
   coverage-verification:
     runs-on: ubuntu-latest
@@ -368,6 +374,51 @@ jobs:
             exit 1
           }
           echo "✅ Coverage thresholds met successfully"
+          
+  deploy-docs:
+    if: false
+    runs-on: ubuntu-latest
+    needs: docs
+    env:
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      GRADLE_SCAN: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: javadoc
+          path: build/docs/javadoc/
+
+      - name: Verify Dokka documentation exists
+        run: |
+          echo "🔍 Verifying Dokka documentation..."
+          set -eo pipefail
+          if [ ! -f ".circleci/scripts/check_docs.sh" ]; then
+            echo "❌ check_docs.sh script not found"
+            exit 1
+          fi
+          chmod +x .circleci/scripts/check_docs.sh
+          sh .circleci/scripts/check_docs.sh || {
+            echo "❌ Documentation verification failed"
+            exit 1
+          }
+          echo "✅ Documentation verification completed"
+
+      - name: Deploy Dokka HTML to GitHub Pages
+        run: |
+          echo "🚀 Deploying documentation to GitHub Pages..."
+          set -eo pipefail
+          if [ ! -f ".circleci/scripts/deploy_docs.sh" ]; then
+            echo "❌ deploy_docs.sh script not found"
+            exit 1
+          fi
+          chmod +x .circleci/scripts/deploy_docs.sh
+          sh .circleci/scripts/deploy_docs.sh || {
+            echo "❌ Documentation deployment failed"
+            exit 1
+          }
+          echo "✅ Documentation deployed successfully"
 
 
 
