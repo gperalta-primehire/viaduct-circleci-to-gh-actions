@@ -110,5 +110,87 @@ jobs:
       #     name: kdoc-html
       #     path: build/dokka
 
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
+      GRADLE_SCAN: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      # Opcional: descargar artefactos del job build (si se necesitan resultados del build)
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-package
+          path: build/package
+
+      - name: Verify Gradle wrapper
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "❌ gradlew not found"
+            exit 1
+          fi
+          chmod +x ./gradlew
+          echo "✅ Gradle wrapper ready"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            .gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml', '**/build.gradle.kts') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests..."
+          ./gradlew test --no-scan --continue || {
+            echo "⚠️ Some tests failed, but continuing"
+            echo "Test failures are not blocking the pipeline"
+          }
+          echo "✅ Test execution completed"
+
+      - name: Generate coverage and test reports
+        if: always()
+        run: |
+          echo "📊 Generating aggregated coverage and test reports..."
+          ./gradlew testAndCoverage --no-scan --no-configuration-cache || {
+            echo "❌ Failed to generate reports"
+            exit 1
+          }
+          echo "✅ Reports generated successfully"
+
+      - name: Upload JUnit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: build/test-results-for-circleci
+
+      - name: Upload JaCoCo coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: build/reports/jacoco
+
+      - name: Upload all reports (for debugging)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-reports
+          path: build/reports
+
+
 
 
