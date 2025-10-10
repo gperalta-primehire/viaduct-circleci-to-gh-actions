@@ -119,12 +119,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Opcional: descargar artefactos del job build (si se necesitan resultados del build)
-      - uses: actions/download-artifact@v4
-        with:
-          name: build-package
-          path: build/package
-
       - name: Verify Gradle wrapper
         run: |
           if [ ! -f "./gradlew" ]; then
