@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: cimg/openjdk:21.0
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       GRADLE_SCAN: "false"
@@ -27,6 +29,7 @@ jobs:
           echo "✅ Gradle wrapper ready"
 
       - name: Setup JDK
+        if: false
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
