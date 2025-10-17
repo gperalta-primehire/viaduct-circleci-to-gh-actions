@@ -337,7 +337,7 @@ jobs:
               🌿 Branch       : ${{ github.ref_name }}
               🧑‍💻 Actor        : ${{ github.actor }}
               🔢 Commit SHA   : ${{ github.sha }}
-              🕒 Started At   : ${{ steps.check_failures.outputs.timestamp }}
+              🕒 Time         : $(date -u +"%Y-%m-%dT%H:%M:%SZ")
               ```
 
               *Links:*
