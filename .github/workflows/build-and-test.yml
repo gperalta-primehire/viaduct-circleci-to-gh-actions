@@ -8,19 +8,7 @@ on:
     branches-ignore:
       - main
 
-jobs:
-  slack-alerts:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Post text to a Slack channel
-        uses: slackapi/slack-github-action@v2.1.1
-        with:
-          method: chat.postMessage
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          payload: |
-            channel: ${{ secrets.SLACK_CHANNEL_ID }}
-            text: "howdy <!channel>! teessst"
-      
+jobs: 
   build:
     runs-on: ubuntu-latest
     env:
@@ -315,5 +303,28 @@ jobs:
             echo "Please check the coverage report and add more tests"
             exit 1
           }
-          echo "✅ Coverage thresholds met successfully"
-       
+
+  slack-alerts:
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Post failure alert to Slack
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            text: |
+              ----------- GitHub Actions Error -------------
+              Description: A job failed in the pipeline
+              project_name=viaduct
+              org=gperalta-ductworks
+              pipeline_name=build-and-test
+              job_name=${{ github.job }}
+              branch=${{ github.ref_name }}
+              commit_sha=${{ github.sha }}
+              repo_url=${{ github.server_url }}/${{ github.repository }}
+              workflow_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              actor=${{ github.actor }}
+              ----------------------------------------------
