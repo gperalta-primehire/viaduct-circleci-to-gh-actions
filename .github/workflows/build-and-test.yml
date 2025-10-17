@@ -25,6 +25,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 #### test slack alerts
           
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -304,6 +305,7 @@ jobs:
             exit 1
           }
 
+
   slack-alerts:
     runs-on: ubuntu-latest
     needs: [build, test, detekt, ktlint, coverage-verification]
@@ -326,20 +328,18 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             text: |
-              ----------- GitHub Actions Error -------------
-              Description: Job(s) failed in pipeline
-              project_name=${{ github.event.repository.name }}
-              org=${{ github.repository_owner }}
-              pipeline_name=${{ github.workflow }}
-              run_number=${{ github.run_number }}
-              failed_job=${{ steps.check_failures.outputs.failed_jobs }}
-              branch=${{ github.ref_name }}
-              commit_sha=${{ github.sha }}
-              repo_url=${{ github.server_url }}/${{ github.repository }}
-              pipeline_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-              workflow_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-              job_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-              actor=${{ github.actor }}
-              ----------------------------------------------
+              :x: *GitHub Actions Pipeline Failure*
+              > *${{ github.workflow }}* (#${{ github.run_number }}) in `${{ github.event.repository.name }}`
 
-              ----------------------------------------------
+              ```
+              ❗ Description : One or more jobs failed
+              🧩 Failed Jobs : ${{ steps.check_failures.outputs.failed_jobs }}
+              🌿 Branch       : ${{ github.ref_name }}
+              🧑‍💻 Actor        : ${{ github.actor }}
+              🔢 Commit SHA   : ${{ github.sha }}
+              🕒 Started At   : ${{ github.run_started_at }}
+              ```
+
+              *Links:*
+              • 🔗 [Repository](${{ github.server_url }}/${{ github.repository }})
+              • 🚀 [Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
