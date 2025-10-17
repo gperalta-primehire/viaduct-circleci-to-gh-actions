@@ -313,15 +313,12 @@ jobs:
       - name: Detect failed jobs dynamically
         id: check_failures
         run: |
-          echo '${{ toJson(needs) }}' | jq -r '
-            to_entries
-            | map(select(.value.result=="failure") | .key)
-            | join(" ")
-          ' > failed_jobs.txt
-          failed_jobs=$(cat failed_jobs.txt)
+          failed_jobs=$(echo '${{ toJson(needs) }}' | jq -r '
+            to_entries | map(select(.value.result=="failure") | .key) | join(" ")
+          ')
           echo "failed_jobs=$failed_jobs" >> $GITHUB_OUTPUT
 
-      - name: Post failure alert to Slack
+      - name: Post formatted failure alert to Slack
         if: ${{ steps.check_failures.outputs.failed_jobs != '' }}
         uses: slackapi/slack-github-action@v2.1.1
         with:
@@ -331,14 +328,19 @@ jobs:
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             text: |
               ----------- GitHub Actions Error -------------
-              Description: One or more jobs failed in the pipeline
-              project_name=viaduct
-              org=gperalta-ductworks
-              pipeline_name=build-and-test
-              failed_jobs=${{ steps.check_failures.outputs.failed_jobs }}
+              Description: Job(s) failed in pipeline
+              project_name=${{ github.event.repository.name }}
+              org=${{ github.repository_owner }}
+              pipeline_name=${{ github.workflow }}
+              run_number=${{ github.run_number }}
+              failed_job=${{ steps.check_failures.outputs.failed_jobs }}
               branch=${{ github.ref_name }}
               commit_sha=${{ github.sha }}
               repo_url=${{ github.server_url }}/${{ github.repository }}
+              pipeline_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               workflow_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              job_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               actor=${{ github.actor }}
+              ----------------------------------------------
+
               ----------------------------------------------
