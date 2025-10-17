@@ -11,6 +11,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Post text to a Slack channel
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            text: "howdy <!channel>!"
+      
+  build:
+    runs-on: ubuntu-latest
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       GRADLE_SCAN: "false"
