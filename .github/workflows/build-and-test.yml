@@ -305,13 +305,26 @@ jobs:
             exit 1
           }
 
+          
   slack-alerts:
     runs-on: ubuntu-latest
     needs: [build, test, detekt, ktlint, coverage-verification]
     if: always()
     steps:
+      - name: Check if any job failed
+        id: check_failures
+        run: |
+          failed_jobs=""
+          for job in build test detekt ktlint coverage-verification; do
+            status="${{ needs[job].result }}"
+            if [ "$status" != "success" ]; then
+              failed_jobs="$failed_jobs $job"
+            fi
+          done
+          echo "failed_jobs=$failed_jobs" >> $GITHUB_OUTPUT
+
       - name: Post failure alert to Slack
-        if: failure()  
+        if: ${{ steps.check_failures.outputs.failed_jobs != '' }}
         uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
@@ -320,11 +333,11 @@ jobs:
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             text: |
               ----------- GitHub Actions Error -------------
-              Description: A job failed in the pipeline
+              Description: One or more jobs failed in the pipeline
               project_name=viaduct
               org=gperalta-ductworks
               pipeline_name=build-and-test
-              job_name=${{ github.job }}
+              failed_jobs=${{ steps.check_failures.outputs.failed_jobs }}
               branch=${{ github.ref_name }}
               commit_sha=${{ github.sha }}
               repo_url=${{ github.server_url }}/${{ github.repository }}
