@@ -25,7 +25,6 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
-          exit 1 #### test slack alerts
           
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -103,6 +102,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 #### test slack alerts
 
       - uses: actions/download-artifact@v4
         with:
@@ -183,6 +183,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 #### test slack alerts
 
       - name: Setup JDK
         uses: actions/setup-java@v4
