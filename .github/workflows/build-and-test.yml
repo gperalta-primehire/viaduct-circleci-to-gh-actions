@@ -337,7 +337,7 @@ jobs:
               🌿 Branch       : ${{ github.ref_name }}
               🧑‍💻 Actor        : ${{ github.actor }}
               🔢 Commit SHA   : ${{ github.sha }}
-              🕒 Started At   : ${{ github.run_started_at }}
+              🕒 Started At   : ${{ steps.check_failures.outputs.timestamp }}
               ```
 
               *Links:*
