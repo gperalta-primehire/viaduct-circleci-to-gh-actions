@@ -305,7 +305,6 @@ jobs:
             exit 1
           }
 
-          
   slack-alerts:
     runs-on: ubuntu-latest
     needs: [build, test, detekt, ktlint, coverage-verification]
@@ -317,7 +316,7 @@ jobs:
           failed_jobs=""
           for job in build test detekt ktlint coverage-verification; do
             status="${{ needs[job].result }}"
-            if [ "$status" != "success" ]; then
+            if [ "$status" == "failure" ]; then
               failed_jobs="$failed_jobs $job"
             fi
           done
