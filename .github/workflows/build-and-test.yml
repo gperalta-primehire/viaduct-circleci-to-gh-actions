@@ -310,16 +310,15 @@ jobs:
     needs: [build, test, detekt, ktlint, coverage-verification]
     if: always()
     steps:
-      - name: Check if any job failed
+      - name: Detect failed jobs dynamically
         id: check_failures
         run: |
-          failed_jobs=""
-          for job in build test detekt ktlint coverage-verification; do
-            status="${{ needs[job].result }}"
-            if [ "$status" == "failure" ]; then
-              failed_jobs="$failed_jobs $job"
-            fi
-          done
+          echo '${{ toJson(needs) }}' | jq -r '
+            to_entries
+            | map(select(.value.result=="failure") | .key)
+            | join(" ")
+          ' > failed_jobs.txt
+          failed_jobs=$(cat failed_jobs.txt)
           echo "failed_jobs=$failed_jobs" >> $GITHUB_OUTPUT
 
       - name: Post failure alert to Slack
