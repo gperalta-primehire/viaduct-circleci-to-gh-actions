@@ -307,9 +307,11 @@ jobs:
 
   slack-alerts:
     runs-on: ubuntu-latest
-    if: failure()
+    needs: [build, test, detekt, ktlint, coverage-verification]
+    if: always()
     steps:
       - name: Post failure alert to Slack
+        if: failure()  
         uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
