@@ -331,7 +331,7 @@ jobs:
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             text: |
               :x: *GitHub Actions Pipeline Failure*
-              > *${{ github.workflow }}* (#${{ github.run_number }}) in `${{ github.event.repository.name }}`
+              > *${{ github.workflow }}* (#${{ github.run_number }}) in repository: `${{ github.event.repository.name }}`
 
               ```
               ❗ Description  : One or more jobs failed
