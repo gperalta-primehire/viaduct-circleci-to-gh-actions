@@ -96,7 +96,6 @@ jobs:
 
       - name: Verify Gradle wrapper
         run: |
-          exit 1 #send slack errors
           if [ ! -f "./gradlew" ]; then
             echo "❌ gradlew not found"
             exit 1
@@ -209,7 +208,6 @@ jobs:
             exit 1
           }
           echo "✅ Detekt analysis passed"
-          exit 1 #send slack errors
 
       - name: Upload Detekt reports
         if: always()
