@@ -311,19 +311,8 @@ jobs:
     needs: [build, test, detekt, ktlint, coverage-verification]
     if: always()
     steps:
-      - name: Detect failed jobs dynamically
-        if: false
-        id: check_failures
-        run: |
-          failed_jobs=$(echo '${{ toJson(needs) }}' | jq -r '
-            to_entries | map(select(.value.result=="failure") | .key) | join(" ")
-          ')
-          alert_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "failed_jobs=$failed_jobs" >> "$GITHUB_OUTPUT"
-          echo "alert_time=$alert_time" >> "$GITHUB_OUTPUT"
-
       - name: Detect failed job and step
-        id: check_failures2
+        id: check_failures
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -355,8 +344,8 @@ jobs:
 
               ```
               ❗ Description  : One or more jobs failed
-              🧩 Failed Jobs  : ${{ steps.check_failures2.outputs.failed_jobs }}
-              🧱 Failed Step  : ${{ steps.check_failures2.outputs.failed_steps }}
+              🧩 Failed Jobs  : ${{ steps.check_failures.outputs.failed_jobs }}
+              🧱 Failed Step  : ${{ steps.check_failures.outputs.failed_steps }}
               🌿 Branch       : ${{ github.ref_name }}
               🧑‍💻 Actor        : ${{ github.actor }}
               🔢 Commit SHA   : ${{ github.sha }}
