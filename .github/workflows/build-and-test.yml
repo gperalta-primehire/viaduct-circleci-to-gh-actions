@@ -25,6 +25,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 #send slack errors
           
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -310,6 +311,7 @@ jobs:
     if: always()
     steps:
       - name: Detect failed jobs dynamically
+        if: false
         id: check_failures
         run: |
           failed_jobs=$(echo '${{ toJson(needs) }}' | jq -r '
@@ -318,6 +320,27 @@ jobs:
           alert_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           echo "failed_jobs=$failed_jobs" >> "$GITHUB_OUTPUT"
           echo "alert_time=$alert_time" >> "$GITHUB_OUTPUT"
+
+      - name: Detect failed job and step
+        id: check_failures2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Detect failed jobs
+          run_id=${{ github.run_id }}
+          failed_jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs \
+            --jq '.jobs[] | select(.conclusion=="failure") | .name' | xargs)
+
+          # Detect failed steps for those jobs
+          failed_steps=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs \
+            --jq '.jobs[] | select(.conclusion=="failure") | .steps[] | select(.conclusion=="failure") | .name' | xargs)
+
+          alert_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          echo "failed_jobs=$failed_jobs" >> "$GITHUB_OUTPUT"
+          echo "failed_steps=$failed_steps" >> "$GITHUB_OUTPUT"
+          echo "alert_time=$alert_time" >> "$GITHUB_OUTPUT"
+
 
       - name: Post formatted failure alert to Slack
         if: ${{ steps.check_failures.outputs.failed_jobs != '' }}
@@ -334,6 +357,7 @@ jobs:
               ```
               ❗ Description  : One or more jobs failed
               🧩 Failed Jobs  : ${{ steps.check_failures.outputs.failed_jobs }}
+              🧱 Failed Step  : ${{ steps.check_failures.outputs.failed_steps }}
               🌿 Branch       : ${{ github.ref_name }}
               🧑‍💻 Actor        : ${{ github.actor }}
               🔢 Commit SHA   : ${{ github.sha }}
