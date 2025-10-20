@@ -86,11 +86,15 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: build
+          name: build-java-${{ matrix.java }}
           path: build/
 
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [17, 21, 22]
+    name: Test (Java ${{ matrix.java }})
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -109,14 +113,14 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: build
+          name: build-java-${{ matrix.java }}
           path: build/
           
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: ${{ matrix.java }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -152,25 +156,29 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-results
+          name: junit-results-java-${{ matrix.java }}
           path: build/test-results-for-circleci
 
       - name: Upload JaCoCo coverage reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports
+          name: coverage-reports-java-${{ matrix.java }}
           path: build/reports/jacoco
 
       - name: Upload all reports (for debugging)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: all-reports
+          name: all-reports-java-${{ matrix.java }}
           path: build/reports
 
   detekt:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [17, 21, 22]
+    name: Detekt (Java ${{ matrix.java }})
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -191,7 +199,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: ${{ matrix.java }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -217,7 +225,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: detekt-reports
+          name: detekt-reports-java-${{ matrix.java }}
           path: '**/build/reports/detekt/**/*'
 
   ktlint:
