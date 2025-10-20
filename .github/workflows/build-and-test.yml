@@ -25,7 +25,6 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
-          exit 1 #send slack errors
           
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -103,6 +102,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 #send slack errors
 
       - uses: actions/download-artifact@v4
         with:
@@ -209,6 +209,7 @@ jobs:
             exit 1
           }
           echo "✅ Detekt analysis passed"
+          exit 1 #send slack errors
 
       - name: Upload Detekt reports
         if: always()
@@ -326,21 +327,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Detect failed jobs
           run_id=${{ github.run_id }}
-          failed_jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs \
-            --jq '.jobs[] | select(.conclusion=="failure") | .name' | xargs)
 
-          # Detect failed steps for those jobs
+          failed_jobs=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs \
+            --jq '[.jobs[] | select(.conclusion=="failure") | .name] | join(", ")')
+
           failed_steps=$(gh api repos/${{ github.repository }}/actions/runs/$run_id/jobs \
-            --jq '.jobs[] | select(.conclusion=="failure") | .steps[] | select(.conclusion=="failure") | .name' | xargs)
+            --jq '[.jobs[] | select(.conclusion=="failure") | .steps[] | select(.conclusion=="failure") | .name] | join(", ")')
 
           alert_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           echo "failed_jobs=$failed_jobs" >> "$GITHUB_OUTPUT"
           echo "failed_steps=$failed_steps" >> "$GITHUB_OUTPUT"
           echo "alert_time=$alert_time" >> "$GITHUB_OUTPUT"
-
 
       - name: Post formatted failure alert to Slack
         if: ${{ steps.check_failures2.outputs.failed_jobs != '' }}
