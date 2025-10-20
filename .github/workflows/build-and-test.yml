@@ -356,8 +356,8 @@ jobs:
 
               ```
               ❗ Description  : One or more jobs failed
-              🧩 Failed Jobs  : ${{ steps.check_failures.outputs.failed_jobs }}
-              🧱 Failed Step  : ${{ steps.check_failures.outputs.failed_steps }}
+              🧩 Failed Jobs  : ${{ steps.check_failures2.outputs.failed_jobs }}
+              🧱 Failed Step  : ${{ steps.check_failures2.outputs.failed_steps }}
               🌿 Branch       : ${{ github.ref_name }}
               🧑‍💻 Actor        : ${{ github.actor }}
               🔢 Commit SHA   : ${{ github.sha }}
