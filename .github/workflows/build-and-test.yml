@@ -230,6 +230,10 @@ jobs:
 
   ktlint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [17, 21, 22]
+    name: ktlint (Java ${{ matrix.java }})
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -250,7 +254,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: ${{ matrix.java }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -274,6 +278,10 @@ jobs:
 
   coverage-verification:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [17, 21, 22]
+    name: coverage verification (Java ${{ matrix.java }})
     needs: test
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -294,7 +302,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: ${{ matrix.java }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
