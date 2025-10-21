@@ -29,6 +29,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 # send slack errors
           
       - name: Setup JDK
         uses: actions/setup-java@v4
