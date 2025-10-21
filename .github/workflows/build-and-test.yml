@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ${{ fromJSON(github.event.inputs.java_versions || '["17","21","22"]') }}
+        java: ${{ fromJSON(inputs.java_versions || '["17","21","22"]') }}
     name: Build (Java ${{ matrix.java }})
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
