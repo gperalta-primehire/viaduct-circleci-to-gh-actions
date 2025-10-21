@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       java_versions:
-        description: "Java versions to test (JSON array, e.g. [17,21,22])"
+        description: "Java versions to run (array, e.g. [17,21,22])"
         required: false
         default: "[17,21,22]"
   push:
