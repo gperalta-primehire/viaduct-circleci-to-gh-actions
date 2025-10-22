@@ -7,6 +7,15 @@ on:
         description: "Java versions to run (array, e.g. [11,17,21])"
         required: false
         default: "[11,17,21]"
+      os:
+        description: "Select operating system"
+        required: false
+        type: choice
+        options:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        default: ubuntu-latest
   push:
     branches: [main]
   pull_request:
@@ -15,7 +24,7 @@ on:
 
 jobs: 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
         java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
@@ -95,7 +104,7 @@ jobs:
           path: build/
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
         java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
@@ -179,7 +188,7 @@ jobs:
           path: build/reports
 
   detekt:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
         java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
@@ -234,7 +243,7 @@ jobs:
           path: '**/build/reports/detekt/**/*'
 
   ktlint:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
         java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
@@ -282,7 +291,7 @@ jobs:
           echo "✅ Ktlint formatting check passed"
 
   coverage-verification:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
         java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
@@ -331,7 +340,7 @@ jobs:
           echo "✅ Coverage thresholds met successfully"
 
   slack-alerts:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     needs: [build, test, detekt, ktlint, coverage-verification]
     if: always()
     steps:
