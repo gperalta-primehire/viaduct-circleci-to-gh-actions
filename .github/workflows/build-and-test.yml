@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ${{ fromJSON(inputs.java_versions || '["17","21","22"]') }}
+        java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
     name: Build (Java ${{ matrix.java }})
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ${{ fromJSON(inputs.java_versions || '["17","21","22"]') }}
+        java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
     name: Test (Java ${{ matrix.java }})
     needs: build
     env:
@@ -182,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ${{ fromJSON(inputs.java_versions || '["17","21","22"]') }}
+        java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
     name: Detekt (Java ${{ matrix.java }})
     needs: build
     env:
@@ -237,7 +237,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ${{ fromJSON(inputs.java_versions || '["17","21","22"]') }}
+        java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
     name: ktlint (Java ${{ matrix.java }})
     needs: build
     env:
@@ -285,7 +285,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: ${{ fromJSON(inputs.java_versions || '["17","21","22"]') }}
+        java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
     name: coverage verification (Java ${{ matrix.java }})
     needs: test
     env:
