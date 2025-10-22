@@ -368,7 +368,8 @@ jobs:
           echo "alert_time=$alert_time" >> "$GITHUB_OUTPUT"
 
       - name: Post formatted failure alert to Slack
-        if: ${{ steps.check_failures.outputs.failed_jobs != '' }}
+        #if: ${{ steps.check_failures.outputs.failed_jobs != '' }}
+        if: false
         uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
