@@ -34,7 +34,6 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
-          exit 1 # test send slack errors
           
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -141,6 +140,7 @@ jobs:
 
       - name: Run tests
         run: |
+          exit 1 # test send slack errors
           echo "🧪 Running tests..."
           ./gradlew test --no-scan --continue || {
             echo "⚠️ Some tests failed, but continuing"
@@ -200,6 +200,7 @@ jobs:
           fi
           chmod +x ./gradlew
           echo "✅ Gradle wrapper ready"
+          exit 1 # test send slack errors
 
       - name: Setup JDK
         uses: actions/setup-java@v4
