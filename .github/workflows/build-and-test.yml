@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       java_versions:
-        description: "Java versions to run (array, e.g. [17,21,22])"
+        description: "Java versions to run (array, e.g. [11,17,21])"
         required: false
-        default: "[17,21,22]"
+        default: "[11,17,21]"
   push:
     branches: [main]
   pull_request:
