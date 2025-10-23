@@ -12,15 +12,18 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import viaduct.engine.api.FragmentLoader
+import viaduct.engine.api.GraphQLBuildError
 import viaduct.engine.api.ViaductSchema
+import viaduct.engine.runtime.execution.TenantNameResolver
 import viaduct.graphql.utils.DefaultSchemaProvider
 import viaduct.service.api.ExecutionInput
 import viaduct.service.api.SchemaId
@@ -157,25 +160,72 @@ class StandardViaductTest {
     }
 
     @Test
-    fun `test newForSchema creates new instance with different schema registry`() {
-        createSimpleStandardViaduct()
-        // Create a new schema configuration
-        val sdl =
-            """
+    fun `build should throw GraphQLBuildError when schema contains Subscription extension in OSS mode`() {
+        val sdl = """
             extend type Query {
-                newTest: String
+                user: String
             }
-            """
 
-        val newSchemaRegistryConfig = SchemaConfiguration.fromSdl(sdl)
+            extend type Subscription {
+                userUpdated: String
+            }
+        """.trimIndent()
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
 
-        val newViaduct = subject.newForSchema(newSchemaRegistryConfig)
+        val exception = assertThrows<GraphQLBuildError> {
+            StandardViaduct.Builder()
+                .withNoTenantAPIBootstrapper()
+                .withSchemaConfiguration(schemaConfiguration)
+                .build()
+        }
 
-        // Verify that we got a new instance with different schema registry
-        assertNotNull(newViaduct)
-        assertNotNull(newViaduct.engineRegistry)
-        // The schema registries should be different instances
-        assertTrue(newViaduct.engineRegistry != subject.engineRegistry)
+        assertEquals("Viaduct does not currently support subscriptions.", exception.message)
+    }
+
+    @Test
+    fun `build should allow Subscription when airbnbModeEnabled is true`() {
+        val sdl = """
+            extend type Query {
+                user: String
+            }
+
+            extend type Subscription {
+                userUpdated: String
+            }
+        """.trimIndent()
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
+        val fragmentLoader = mockk<FragmentLoader>(relaxed = true)
+
+        assertDoesNotThrow {
+            StandardViaduct.Builder()
+                .enableAirbnbBypassDoNotUse(
+                    fragmentLoader = fragmentLoader,
+                    tenantNameResolver = TenantNameResolver()
+                )
+                .withSchemaConfiguration(schemaConfiguration)
+                .build()
+        }
+    }
+
+    @Test
+    fun `build should succeed when schema has no Subscriptions in OSS mode`() {
+        val sdl = """
+            extend type Query {
+                user: String
+            }
+
+            extend type Mutation {
+                updateUser: String
+            }
+        """.trimIndent()
+        val schemaConfiguration = SchemaConfiguration.fromSdl(sdl)
+
+        assertDoesNotThrow {
+            StandardViaduct.Builder()
+                .withNoTenantAPIBootstrapper()
+                .withSchemaConfiguration(schemaConfiguration)
+                .build()
+        }
     }
 }
 

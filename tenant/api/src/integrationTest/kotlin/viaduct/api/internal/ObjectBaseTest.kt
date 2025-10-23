@@ -266,6 +266,48 @@ class ObjectBaseTest {
         }
 
     @Test
+    fun `test enum schema version skew - string value accepted for runtime schema`(): Unit =
+        runBlocking {
+            // This test verifies schema version skew tolerance where:
+            // 1. Runtime GraphQL schema has enum value "C" (new deployment)
+            // 2. Compiled Java enum E1 only has values A and B
+            // 3. String value "C" should be accepted by dynamic builder API
+            //    because it's valid in runtime schema, even though E1.valueOf("C") would fail
+
+            // Create a schema with enum E1 having additional value "C" not in compiled enum
+            val schemaWithNewEnumValue = SchemaUtils.mkSchema(
+                """
+                enum E1 {
+                  A
+                  B
+                  C
+                }
+                type O1 {
+                  id: ID!
+                  enumField: E1
+                }
+                """.trimIndent()
+            )
+            val contextWithNewEnum = MockInternalContext.mk(schemaWithNewEnumValue, "viaduct.api.testschema")
+
+            // Test that string value "C" is accepted via dynamic builder API
+            // The value exists in runtime schema but not in compiled E1 enum
+            val o1 =
+                O1(
+                    contextWithNewEnum,
+                    EngineObjectDataBuilder.from(schemaWithNewEnumValue.schema.getObjectType("O1"))
+                        .put("enumField", "C") // String value for version skew tolerance
+                        .build()
+                )
+
+            // The enum field should be readable and return "C" as a string
+            // (Note: getEnumField() will try to convert to E1 enum, which will fail)
+            // This test verifies the dynamic builder accepts the value
+            val engineData = o1.engineObject as EngineObjectData
+            assertEquals("C", engineData.fetch("enumField"))
+        }
+
+    @Test
     fun `test wrap interface`(): Unit =
         runBlocking {
             val o1 =
@@ -615,31 +657,36 @@ class ObjectBaseTest {
         suspend fun getArgumentedField(): String? = fetch("argumentedField", String::class, null)
 
         // toBuilder implementation that would normally be provided by codegen
-        fun toBuilder(): TestObjectBuilder = TestObjectBuilder(context, engineObject.graphQLObjectType, toBuilderEOD())
-    }
+        fun toBuilder(): Builder =
+            Builder(
+                context,
+                engineObject.graphQLObjectType,
+                toBuilderEOD()
+            )
 
-    private class TestObjectBuilder(
-        context: InternalContext,
-        graphQLObjectType: GraphQLObjectType,
-        baseEngineObjectData: EngineObjectData? = null
-    ) : ObjectBase.Builder<TestObject>(context, graphQLObjectType, baseEngineObjectData) {
-        constructor(context: viaduct.api.context.ExecutionContext) : this(
-            context.internal,
-            context.internal.schema.schema.getObjectType("O2"), // Use existing O2 type
-            null
-        )
+        class Builder(
+            context: InternalContext,
+            graphQLObjectType: GraphQLObjectType,
+            baseEngineObjectData: EngineObjectData? = null
+        ) : ObjectBase.Builder<TestObject>(context, graphQLObjectType, baseEngineObjectData) {
+            constructor(context: viaduct.api.context.ExecutionContext) : this(
+                context.internal,
+                context.internal.schema.schema.getObjectType("O2"), // Use existing O2 type
+                null
+            )
 
-        fun intField(value: Int): TestObjectBuilder {
-            putInternal("intField", value)
-            return this
+            fun intField(value: Int): Builder {
+                putInternal("intField", value)
+                return this
+            }
+
+            fun argumentedField(value: String?): Builder {
+                putInternal("argumentedField", value)
+                return this
+            }
+
+            override fun build() = TestObject(context, buildEngineObjectData())
         }
-
-        fun argumentedField(value: String?): TestObjectBuilder {
-            putInternal("argumentedField", value)
-            return this
-        }
-
-        override fun build() = TestObject(context, buildEngineObjectData())
     }
 
     @Nested
@@ -647,7 +694,7 @@ class ObjectBaseTest {
         @Test
         fun `toBuilder preserves unmodified fields`() =
             runBlocking {
-                val original = TestObjectBuilder(executionContext)
+                val original = TestObject.Builder(executionContext)
                     .intField(42)
                     .argumentedField("hello")
                     .build()
@@ -663,7 +710,7 @@ class ObjectBaseTest {
         @Test
         fun `toBuilder allows multiple field overrides`() =
             runBlocking {
-                val original = TestObjectBuilder(executionContext)
+                val original = TestObject.Builder(executionContext)
                     .intField(1)
                     .argumentedField("original")
                     .build()
@@ -696,7 +743,7 @@ class ObjectBaseTest {
         @Test
         fun `toBuilder with no overrides creates equivalent object`() =
             runBlocking {
-                val original = TestObjectBuilder(executionContext)
+                val original = TestObject.Builder(executionContext)
                     .intField(123)
                     .argumentedField("test")
                     .build()
@@ -710,7 +757,7 @@ class ObjectBaseTest {
         @Test
         fun `chained toBuilder calls work correctly`() =
             runBlocking {
-                val v1 = TestObjectBuilder(executionContext)
+                val v1 = TestObject.Builder(executionContext)
                     .intField(1)
                     .argumentedField("v1")
                     .build()

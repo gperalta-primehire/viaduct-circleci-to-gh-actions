@@ -210,6 +210,8 @@ class StandardViaduct
                     this.meterRegistry = meterRegistry
                 }
 
+            fun isAirbnbModeEnabled() = this.airbnbModeEnabled
+
             /**
              * Builds the Guice Module within Viaduct and gets Viaduct from the injector.
              * Uses the factory pattern for proper dependency injection.
@@ -262,6 +264,11 @@ class StandardViaduct
 
                     // Factory creates child injector with schema modules and returns StandardViaduct
                     return factory.createForSchema(schemaConfiguration)
+                        .also { viaduct ->
+                            if (!isAirbnbModeEnabled() && hasSubscriptions(viaduct.engineRegistry.getSchema(SchemaId.Full))) {
+                                throw GraphQLBuildError("Viaduct does not currently support subscriptions.")
+                            }
+                        }
                 } catch (e: ProvisionException) {
                     val isCausedByDispatcherRegistryFactory = e.cause?.stackTrace?.any {
                         it.className == DispatcherRegistryFactory::class.java.name
@@ -272,6 +279,16 @@ class StandardViaduct
                     }
                     throw e
                 }
+            }
+
+            /**
+             * Checks if the given schema contains Subscription operation type.
+             *
+             * @param schema the schema to check
+             * @return true if schema has subscriptions defined, false otherwise
+             */
+            private fun hasSubscriptions(schema: ViaductSchema): Boolean {
+                return schema.schema.subscriptionType != null
             }
 
             /**
@@ -311,15 +328,6 @@ class StandardViaduct
             }
         }
 
-        /**
-         * Function to create a new StandardViaduct from an existing StandardViaduct with a different schema.
-         * Uses the factory pattern for proper dependency injection.
-         * Caller is expected to construct the schema configuration and pass it in.
-         */
-        fun newForSchema(schemaConfiguration: SchemaConfiguration): StandardViaduct {
-            return standardViaductFactory.createForSchema(schemaConfiguration)
-        }
-
         private fun mkSchemaNotFoundError(schemaId: SchemaId): CompletableFuture<ExecutionResult> {
             val error: GraphQLError = GraphqlErrorBuilder.newError()
                 .message("Schema not found for schemaId=$schemaId")
@@ -345,7 +353,7 @@ class StandardViaduct
         ): CompletableFuture<ExecutionResult> {
             val engine = try {
                 engineRegistry.getEngine(schemaId)
-            } catch (e: EngineRegistry.SchemaNotFoundException) {
+            } catch (_: EngineRegistry.SchemaNotFoundException) {
                 return mkSchemaNotFoundError(schemaId)
             }
             return coroutineInterop.enterThreadLocalCoroutineContext {
@@ -380,35 +388,6 @@ class StandardViaduct
             @Suppress("DEPRECATION")
             return getSchema(schemaId).scopes()
         }
-
-        /**
-         * Runs a query against the schema named "" (blank string) using
-         * a simplified execution context.  (Intended for testing.)
-         */
-        fun runQuery(
-            query: String,
-            variables: Map<String, Any?> = emptyMap(),
-        ): ExecutionResult = runQuery(SchemaId.Full, query, variables)
-
-        /**
-         * Runs a query against the schema using a simplified
-         * execution context.  (Intended for testing.)
-         */
-
-        /** Runs a query. */
-        fun runQuery(
-            schemaId: SchemaId,
-            query: String,
-            variables: Map<String, Any?> = emptyMap(),
-        ): ExecutionResult =
-            execute(
-                ExecutionInput.create(
-                    operationText = query,
-                    variables = variables,
-                    requestContext = Any(),
-                ),
-                schemaId,
-            )
 
         /**
          * Creates ExecutionResult from Execution Result and sorts the errors based on a path
