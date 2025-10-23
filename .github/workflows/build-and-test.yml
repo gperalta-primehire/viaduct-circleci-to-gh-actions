@@ -303,7 +303,6 @@ jobs:
             echo "Please check the coverage report and add more tests"
             exit 1
           }
-          echo "✅ Coverage thresholds met successfully"
 
   slack-alerts:
     runs-on: ubuntu-latest
