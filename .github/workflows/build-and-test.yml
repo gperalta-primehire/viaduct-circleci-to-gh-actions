@@ -7,7 +7,6 @@ on:
   pull_request:
     branches-ignore:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +15,6 @@ jobs:
       GRADLE_SCAN: "false"
     steps:
       - uses: actions/checkout@v4
-
       - name: Verify Gradle wrapper
         run: |
           if [ ! -f "./gradlew" ]; then
