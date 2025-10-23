@@ -17,6 +17,9 @@ on:
           - macos-latest
           - macos-13
           - macos-15-intel 
+          - macos-14
+          - macos-15
+          - macos-26 
         default: ubuntu-latest
   push:
     branches: [main]
