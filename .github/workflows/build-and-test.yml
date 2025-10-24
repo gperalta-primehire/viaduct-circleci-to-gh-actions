@@ -32,9 +32,10 @@ on:
 
 jobs: 
   build:
-    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: ${{ fromJSON(inputs.os || '["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["21"]') }}
     name: Build (Java ${{ matrix.java }}) ${{ inputs.os }}
     env:
