@@ -203,7 +203,7 @@ jobs:
       matrix:
         os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
-    name: (Java ${{ matrix.java }}) ${{ matrix.os }}
+    name: detekt (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
@@ -259,7 +259,7 @@ jobs:
       matrix:
         os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
-    name: (Java ${{ matrix.java }}) ${{ matrix.os }}
+    name: ktlint (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: build
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
