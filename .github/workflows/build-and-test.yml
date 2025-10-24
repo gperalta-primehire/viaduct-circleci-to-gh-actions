@@ -109,7 +109,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: build-java-${{ matrix.java }}
+          name: build-java-${{ matrix.java }}-${{ matrix.os }}
           path: build/
 
   test:
@@ -137,7 +137,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: build-java-${{ matrix.java }}
+          name: build-java-${{ matrix.java }}-${{ matrix.os }}
           path: build/
           
       - name: Setup JDK
@@ -180,21 +180,21 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-results-java-${{ matrix.java }}
+          name: junit-results-java-${{ matrix.java }}-${{ matrix.os }}
           path: build/test-results-for-circleci
 
       - name: Upload JaCoCo coverage reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports-java-${{ matrix.java }}
+          name: coverage-reports-java-${{ matrix.java }}-${{ matrix.os }}
           path: build/reports/jacoco
 
       - name: Upload all reports (for debugging)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: all-reports-java-${{ matrix.java }}
+          name: all-reports-java-${{ matrix.java }}-${{ matrix.os }}
           path: build/reports
 
   detekt:
@@ -250,7 +250,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: detekt-reports-java-${{ matrix.java }}
+          name: detekt-reports-java-${{ matrix.java }}-${{ matrix.os }}
           path: '**/build/reports/detekt/**/*'
 
   ktlint:
