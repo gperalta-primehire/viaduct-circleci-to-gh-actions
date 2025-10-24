@@ -25,7 +25,7 @@ on:
           - macos-14      
         default: ubuntu-latest
   push:
-    branches: [main, action-matrix]
+    branches: [main]
   pull_request:
     branches-ignore:
       - main
@@ -353,7 +353,7 @@ jobs:
           echo "✅ Coverage thresholds met successfully"
 
   slack-alerts:
-    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     needs: [build, test, detekt, ktlint, coverage-verification]
     if: always()
     steps:
