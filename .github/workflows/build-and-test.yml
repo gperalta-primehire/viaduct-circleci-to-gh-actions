@@ -34,7 +34,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: ${{ fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
+        os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     runs-on: ${{ matrix.os }}
     name: Build (Java ${{ matrix.java }}) ${{ matrix.os }}
@@ -116,7 +116,7 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
-        os: ${{ fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
+        os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     name: Test (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: build
@@ -201,7 +201,7 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
-        os: ${{ fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
+        os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     name: (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: build
@@ -257,7 +257,7 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
-        os: ${{ fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
+        os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     name: (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: build
@@ -306,7 +306,7 @@ jobs:
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       matrix:
-        os: ${{ fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
+        os: ${{ inputs.os && fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     name: coverage verification (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: test
