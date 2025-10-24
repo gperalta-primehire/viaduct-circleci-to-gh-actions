@@ -34,7 +34,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: ${{ inputs.os != '' && [inputs.os] || fromJSON('["ubuntu-latest","macos-latest"]') }}
+        os: ${{ fromJSON(format('["{0}"]', inputs.os)) || fromJSON('["ubuntu-latest","macos-latest"]') }}
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     runs-on: ${{ matrix.os }}
     name: Build (Java ${{ matrix.java }}) ${{ matrix.os }}
