@@ -310,6 +310,7 @@ jobs:
         java: ${{ fromJSON(inputs.java_versions || '["11","17","21"]') }}
     name: coverage verification (Java ${{ matrix.java }}) ${{ matrix.os }}
     needs: test
+    if: failure() || success()
     env:
       GRADLE_OPTS_EXTRA: "-Dorg.gradle.parallel=false -Dorg.gradle.caching=true -Dorg.gradle.daemon=false"
       GRADLE_SCAN: "false"
